@@ -1,0 +1,32 @@
+- name: Set package and ini path for Debian/Ubuntu
+  set_fact:
+    php_packages: "{{ php_packages_debian }}"
+    php_ini_path: "{{ php_ini_path_debian }}"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+
+- name: Install PHP and modules from Debian/Ubuntu 
+  ansible.builtin.package:
+    name: "{{ php_packages }}"
+    state: present
+  become: yes
+
+- name: Ensure PHP Apache config directory exists
+  file:
+    path: "/etc/php/{{ php_version }}/apache2"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Deploy PHP configuration
+  ansible.builtin.template:
+    src: php.ini.j2
+    dest: "{{ php_ini_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Apache
+  become: yes
